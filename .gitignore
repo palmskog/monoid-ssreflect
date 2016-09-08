@@ -1,0 +1,8 @@
+*.aux
+*.vo
+*.d
+*.glob
+*.cmi
+*.cmo
+Makefile.coq
+_CoqProject

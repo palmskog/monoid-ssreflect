@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+## Configures and calls coqproject.sh (https://github.com/dwoos/coqproject)
+
+## Configuration options for coqproject.sh
+DEPS=(AAC_tactics)
+CANARIES=("mathcomp.ssreflect.ssreflect" "project requires mathcomp to be installed" "AAC_tactics.AAC" "project requires AAC Tactics to be installed")
+source coqproject.sh
