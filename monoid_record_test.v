@@ -1,22 +1,18 @@
-Require Import mathcomp.ssreflect.ssreflect.
-Require Import mathcomp.ssreflect.ssrfun.
-Require Import mathcomp.ssreflect.ssrbool.
+From mathcomp.ssreflect
+Require Import ssreflect ssrbool ssrnat ssrfun.
 
 (* needs v8.5 branch of https://github.com/coq-contribs/aac-tactics *)
 Require Import AAC_tactics.AAC.
 
 Require Import monoid_record.
 
-Module Type CommutativeMonoid.
-Parameter mT : monoidType.
-Parameter mulC : @commutative mT _ (mul (mT := mT)).
-End CommutativeMonoid.
+Section CommutativeMonoid.
 
-Module CommutativeMonoidWork (Import CM : CommutativeMonoid).
+Variable mT : CMonoidType.
 
 Instance aac_mulg_Assoc : Associative eq (mul (mT := mT)) := mulA (U := mT).
 
-Instance aac_mulg_Comm : Commutative eq (mul (mT := mT)) := mulC.
+Instance aac_mulg_Comm : Commutative eq (mul (mT := mT)) := mulC (U := mT).
 
 Instance aac_mulg_Unit : Unit eq (mul (mT := mT)) (unit mT) :=
 {
@@ -43,4 +39,4 @@ move => x1 x2 x3 x4 x5 x6 x7.
 by aac_reflexivity.
 Qed.
 
-End CommutativeMonoidWork.
+End CommutativeMonoid.

@@ -68,3 +68,29 @@ End Exports.
 End MDef.
 
 Export MDef.Exports.
+
+Module CMDef.
+
+Record mixin_of (U : monoidType) := Mixin {
+  _ : commutative (mul (mT := U));
+}.
+
+Structure pack_type : Type := Pack {mT : monoidType; _ : mixin_of mT}.
+
+Module Exports.
+
+Notation CMonoidType := pack_type.
+Notation CMMixin := Mixin.
+Notation CM T m:= (@Pack T m).
+
+Coercion mT : pack_type >-> monoidType.
+
+Lemma mulC (U : CMonoidType) (x y : U) : x \* y = y \* x.
+Proof.
+by case: U x y=> tp [Cxy x y]; apply Cxy.
+Qed.
+
+End Exports.
+End CMDef.
+
+Export CMDef.Exports.
