@@ -35,6 +35,8 @@ Coercion sort : pack_type >-> Sortclass.
 Coercion mixin : pack_type >-> mixin_of.
 Bind Scope monoid_scope with sort.
 Notation monoidType := pack_type.
+Notation MonoidMixin := Mixin.
+Notation MonoidType T mT := (@Pack T mT).
 End Exports.
 
 End Monoid.
@@ -127,3 +129,40 @@ End MonoidIdentities.
 Hint Rewrite mulm1 mul1m mulmA : msimpl.
 
 Ltac msimpl := autorewrite with msimpl; try done.
+
+Module CommutativeMonoid.
+
+Record mixin_of (mT : monoidType) := Mixin {
+  _ : commutative (@mulm mT)
+}.
+
+Structure pack_type : Type := Pack {
+  sort : monoidType;
+  _ : mixin_of sort
+}.
+
+Definition mixin T :=
+  let: Pack _ m := T return mixin_of (sort T) in m.
+
+Module Import Exports.
+Coercion sort : pack_type >-> monoidType.
+Coercion mixin : pack_type >-> mixin_of.
+Bind Scope monoid_scope with sort.
+Notation commMonoidType := pack_type.
+Notation CommMonoidMixin := Mixin.
+Notation CommMonoidType T mT := (@Pack T mT).
+End Exports.
+
+End CommutativeMonoid.
+Export CommutativeMonoid.Exports.
+
+Section CommutativeMonoidIdentities.
+
+Variable T : commMonoidType.
+Implicit Types x y z : T.
+Local Notation mulmT := (@mulm T).
+
+Lemma mulmC : @commutative T _ mulmT.
+Proof. by case: T => ? []. Qed.
+
+End CommutativeMonoidIdentities.

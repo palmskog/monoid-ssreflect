@@ -9,9 +9,7 @@ Import MonoidScope.
 
 Section CommutativeMonoid.
 
-Variable mT : monoidType.
-
-Hypothesis mulm_commutative : @commutative mT _ (@mulm mT).
+Variable mT : commMonoidType.
 
 Instance aac_mulm_Assoc : Associative eq (@mulm mT) := @mulmA mT.
 
@@ -21,7 +19,7 @@ Instance aac_mulm_Unit : Unit eq (@mulm mT) 1 :=
   law_neutral_right := @mulm1 mT
 }.
 
-Instance aac_mulg_Comm : Commutative eq (@mulm mT) := mulm_commutative.
+Instance aac_mulg_Comm : Commutative eq (@mulm mT) := @mulmC mT.
 
 Lemma aac_test_1 : 
   forall x y z : mT, x * y * z = 1 * y * z * 1 * x.
