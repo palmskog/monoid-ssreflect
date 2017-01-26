@@ -1,39 +1,38 @@
 From mathcomp.ssreflect
 Require Import ssreflect ssrbool ssrnat ssrfun.
 
-(* needs v8.5 branch of https://github.com/coq-contribs/aac-tactics *)
 Require Import AAC_tactics.AAC.
 
 Require Import monoid_record.
 
+Import MonoidScope.
+
 Section CommutativeMonoid.
 
-Variable mT : CMonoidType.
+Variable mT : monoidType.
 
-Instance aac_mulg_Assoc : Associative eq (mul (mT := mT)) := mulA (U := mT).
+Hypothesis mulm_commutative : @commutative mT _ (@mulm mT).
 
-Instance aac_mulg_Comm : Commutative eq (mul (mT := mT)) := mulC (U := mT).
+Instance aac_mulm_Assoc : Associative eq (@mulm mT) := @mulmA mT.
 
-Instance aac_mulg_Unit : Unit eq (mul (mT := mT)) (unit mT) :=
+Instance aac_mulm_Unit : Unit eq (@mulm mT) 1 :=
 {
-  law_neutral_left := fun mT => _ ;
-  law_neutral_right := fun mT =>  _;
+  law_neutral_left := @mul1m mT ;
+  law_neutral_right := @mulm1 mT
 }.
-Proof.
-- by rewrite l_mul_unit.
-- by rewrite r_mul_unit.
-Qed.
+
+Instance aac_mulg_Comm : Commutative eq (@mulm mT) := mulm_commutative.
 
 Lemma aac_test_1 : 
-  forall x y z, x \* y \* z = (unit mT) \* y \* z \* (unit mT) \* x.
+  forall x y z : mT, x * y * z = 1 * y * z * 1 * x.
 Proof.
 move => x y z.
 by aac_reflexivity.
 Qed.
 
 Lemma aac_test_2 : 
-  forall x1 x2 x3 x4 x5 x6 x7, 
-    x1 \* x2 \* x3 \* x4 \* x5 \* x6 \* x7 = ((unit mT) \* x3) \* (x7 \* x2 \* x1 \* (unit mT)) \* x6 \* (x5 \* x4).
+  forall x1 x2 x3 x4 x5 x6 x7 : mT, 
+    x1 * x2 * x3 * x4 * x5 * x6 * x7 = (1 * x3) * (x7 * x2 * x1 * 1) * x6 * (x5 * x4).
 Proof.
 move => x1 x2 x3 x4 x5 x6 x7.
 by aac_reflexivity.

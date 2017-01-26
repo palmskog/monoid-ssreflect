@@ -1,96 +1,129 @@
 From mathcomp.ssreflect
-Require Import ssreflect ssrbool ssrnat ssrfun.
+Require Import ssreflect ssrbool ssrnat ssrfun bigop.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Module MDef.
+Delimit Scope monoid_scope with m.
+
+Module MonoidScope.
+Open Scope monoid_scope.
+End MonoidScope.
+Import MonoidScope.
+
+Module Monoid.
 
 Record mixin_of (T : Type) := Mixin {
-    mul_op : T -> T -> T;
-    unit_op : T;
-    _ : associative mul_op;
-    _ : left_id unit_op mul_op;
-    _ : right_id unit_op mul_op;
+  mul : T -> T -> T;
+  one : T;
+  _ : associative mul;
+  _ : left_id one mul;
+  _ : right_id one mul
 }.
 
-Section Packing.
+Structure pack_type : Type := Pack {
+  sort : Type;
+  _ : mixin_of sort
+}.
 
-Structure pack_type : Type := Pack {type : Type; _ : mixin_of type}.
+Definition mixin T :=
+  let: Pack _ m := T return mixin_of (sort T) in m.
 
-Local Coercion type : pack_type >-> Sortclass.
-
-Variable mT : pack_type.
-
-Definition m_struct : mixin_of mT := 
-    let: Pack _ c := mT return mixin_of mT in c.
-
-Definition mul := mul_op m_struct.
-Definition unit := unit_op m_struct.
-
-End Packing.
-
-Module Exports.
-
+Module Import Exports.
+Coercion sort : pack_type >-> Sortclass.
+Coercion mixin : pack_type >-> mixin_of.
+Bind Scope monoid_scope with sort.
 Notation monoidType := pack_type.
-Notation MMixin := Mixin.
-Notation M T mT := (@Pack T mT).
-
-Notation "x \* y" := (mul x y) (at level 43, left associativity).
-Notation unit := unit.
-Notation mul := mul.
-
-Coercion type : pack_type >-> Sortclass.
-
-Section MLemmas.
-Variable U : monoidType.
-
-Lemma l_mul_unit (x : U) : (unit U) \* x = x.
-Proof.
-case: U x=>tp [v j Aj Lj Rj *]; apply: Lj.
-Qed.
-
-Lemma r_mul_unit (x : U) : x \* (unit U) = x.
-Proof.
-case: U x=>tp [v j Aj Lj Rj *]; apply: Rj.
-Qed.
-
-Lemma mulA (x y z : U) : x \* (y \* z) = x \* y \* z.
-Proof. 
-by case: U x y z=>tp [v j Aj *]; apply: Aj.
-Qed.
-
-End MLemmas.
-
 End Exports.
 
-End MDef.
+End Monoid.
+Export Monoid.Exports.
 
-Export MDef.Exports.
+Section ElementOps.
 
-Module CMDef.
+Variable T : monoidType.
+Notation rT := (Monoid.sort T).
 
-Record mixin_of (U : monoidType) := Mixin {
-  _ : commutative (mul (mT := U));
-}.
+Definition onem : rT := Monoid.one T.
+Definition mulm : T -> T -> rT := Monoid.mul T.
+Definition expmn_rec (x : T) n : rT := iterop n mulm x onem.
 
-Structure pack_type : Type := Pack {mT : monoidType; _ : mixin_of mT}.
+End ElementOps.
 
-Module Exports.
+Definition expmn := nosimpl expmn_rec.
 
-Notation CMonoidType := pack_type.
-Notation CMMixin := Mixin.
-Notation CM T m:= (@Pack T m).
+Notation "1" := (onem _) : monoid_scope.
+Notation "x1 * x2" := (mulm x1 x2) : monoid_scope.
+Notation "x ^+ n" := (expmn x n) : monoid_scope.
 
-Coercion mT : pack_type >-> monoidType.
+Section MonoidIdentities.
 
-Lemma mulC (U : CMonoidType) (x y : U) : x \* y = y \* x.
+Variable T : monoidType.
+Implicit Types x y z : T.
+Local Notation mulmT := (@mulm T).
+
+Lemma mulmA : associative mulmT.  Proof. by case: T => ? []. Qed.
+Lemma mul1m : left_id 1 mulmT.  Proof. by case: T => ? []. Qed.
+Lemma mulm1 : right_id 1 mulmT. Proof. by case: T => ? []. Qed.
+
+Canonical monoid_law := Monoid.Law mulmA mul1m mulm1.
+
+Lemma expmnE x n : x ^+ n = expmn_rec x n. Proof. by []. Qed.
+Lemma expm0 x : x ^+ 0 = 1. Proof. by []. Qed.
+Lemma expm1 x : x ^+ 1 = x. Proof. by []. Qed.
+
+Lemma expmS x n : x ^+ n.+1 = x * x ^+ n.
+Proof. by case: n => //; rewrite mulm1. Qed.
+
+Lemma expm1n n : 1 ^+ n = 1 :> T.
+Proof. by elim: n => // n IHn; rewrite expmS mul1m. Qed.
+
+Lemma expmD x n m : x ^+ (n + m) = x ^+ n * x ^+ m.
+Proof. by elim: n => [|n IHn]; rewrite ?mul1m // !expmS IHn mulmA. Qed.
+
+Lemma expmSr x n : x ^+ n.+1 = x ^+ n * x.
+Proof. by rewrite -addn1 expmD expm1. Qed.
+
+Lemma expmM x n m : x ^+ (n * m) = x ^+ n ^+ m.
 Proof.
-by case: U x y=> tp [Cxy x y]; apply Cxy.
+elim: m => [|m IHm]; first by rewrite muln0 expm0.
+by rewrite mulnS expmD IHm expmS.
 Qed.
 
-End Exports.
-End CMDef.
+Lemma expmAC x m n : x ^+ m ^+ n = x ^+ n ^+ m.
+Proof. by rewrite -!expmM mulnC. Qed.
 
-Export CMDef.Exports.
+Definition commute x y := x * y = y * x.
+
+Lemma commute_refl x : commute x x.
+Proof. by []. Qed.
+
+Lemma commute_sym x y : commute x y -> commute y x.
+Proof. by []. Qed.
+
+Lemma commute1 x : commute x 1.
+Proof. by rewrite /commute mulm1 mul1m. Qed.
+
+Lemma commuteM x y z : commute x y ->  commute x z ->  commute x (y * z).
+Proof. by move=> cxy cxz; rewrite /commute -mulmA -cxz !mulmA cxy. Qed.
+
+Lemma commuteX x y n : commute x y ->  commute x (y ^+ n).
+Proof.
+by move=> cxy; case: n; [apply: commute1 | elim=> // n; apply: commuteM].
+Qed.
+
+Lemma commuteX2 x y m n : commute x y -> commute (x ^+ m) (y ^+ n).
+Proof. by move=> cxy; apply/commuteX/commute_sym/commuteX. Qed.
+
+Lemma expmMn x y n : commute x y -> (x * y) ^+ n  = x ^+ n * y ^+ n.
+Proof.
+move=> cxy; elim: n => [|n IHn]; first by rewrite mulm1.
+by rewrite !expmS IHn -mulmA (mulmA y) (commuteX _ (commute_sym cxy)) !mulmA.
+Qed.
+
+End MonoidIdentities.
+
+Hint Rewrite mulm1 mul1m mulmA : msimpl.
+
+Ltac msimpl := autorewrite with msimpl; try done.
