@@ -14,7 +14,7 @@ Import MonoidScope.
 
 Module Monoid.
 
-Record mixin_of (T : Type) := Mixin {
+Structure mixin_of (T : Type) := Mixin {
   mul : T -> T -> T;
   one : T;
   _ : associative mul;
@@ -22,7 +22,7 @@ Record mixin_of (T : Type) := Mixin {
   _ : right_id one mul
 }.
 
-Structure pack_type : Type := Pack {
+Structure type : Type := Pack {
   sort : Type;
   _ : mixin_of sort
 }.
@@ -31,12 +31,12 @@ Definition mixin T :=
   let: Pack _ m := T return mixin_of (sort T) in m.
 
 Module Import Exports.
-Coercion sort : pack_type >-> Sortclass.
-Coercion mixin : pack_type >-> mixin_of.
+Coercion sort : type >-> Sortclass.
+Coercion mixin : type >-> mixin_of.
 Bind Scope monoid_scope with sort.
-Notation monoidType := pack_type.
+Notation monoidType := type.
 Notation MonoidMixin := Mixin.
-Notation MonoidType T mT := (@Pack T mT).
+Notation MonoidType T m := (@Pack T m).
 End Exports.
 
 End Monoid.
@@ -132,11 +132,11 @@ Ltac msimpl := autorewrite with msimpl; try done.
 
 Module CommutativeMonoid.
 
-Record mixin_of (mT : monoidType) := Mixin {
+Structure mixin_of (mT : monoidType) := Mixin {
   _ : commutative (@mulm mT)
 }.
 
-Structure pack_type : Type := Pack {
+Structure type : Type := Pack {
   sort : monoidType;
   _ : mixin_of sort
 }.
@@ -145,12 +145,12 @@ Definition mixin T :=
   let: Pack _ m := T return mixin_of (sort T) in m.
 
 Module Import Exports.
-Coercion sort : pack_type >-> monoidType.
-Coercion mixin : pack_type >-> mixin_of.
+Coercion sort : type >-> monoidType.
+Coercion mixin : type >-> mixin_of.
 Bind Scope monoid_scope with sort.
-Notation commMonoidType := pack_type.
+Notation commMonoidType := type.
 Notation CommMonoidMixin := Mixin.
-Notation CommMonoidType T mT := (@Pack T mT).
+Notation CommMonoidType T m := (@Pack T m).
 End Exports.
 
 End CommutativeMonoid.

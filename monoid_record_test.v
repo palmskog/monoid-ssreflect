@@ -1,9 +1,9 @@
 From mathcomp.ssreflect
 Require Import ssreflect ssrbool ssrnat ssrfun.
 
-Require Import AAC_tactics.AAC.
-
 Require Import monoid_record.
+
+Require Import AAC_tactics.AAC.
 
 Import MonoidScope.
 
