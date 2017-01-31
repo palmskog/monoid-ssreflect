@@ -30,6 +30,10 @@ Structure type : Type := Pack {
 Definition mixin T :=
   let: Pack _ m := T return mixin_of (sort T) in m.
 
+Definition clone T :=
+  fun mT & sort mT -> T =>
+  fun m (mT' := @Pack T m) & phant_id mT' mT => mT'.
+
 Module Import Exports.
 Coercion sort : type >-> Sortclass.
 Coercion mixin : type >-> mixin_of.
@@ -37,6 +41,12 @@ Bind Scope monoid_scope with sort.
 Notation monoidType := type.
 Notation MonoidMixin := Mixin.
 Notation MonoidType T m := (@Pack T m).
+Notation "[ 'monoidMixin' 'of' T ]" := (sort _ : mixin_of T)
+  (at level 0, format "[ 'monoidMixin'  'of'  T ]") : form_scope.
+Notation "[ 'monoidType' 'of' T 'for' C ]" := (@clone T C _ idfun id)
+  (at level 0, format "[ 'monoidType'  'of'  T  'for'  C ]") : form_scope.
+Notation "[ 'monoidType' 'of' T ]" := (@clone T _ _ id id)
+  (at level 0, format "[ 'monoidType'  'of'  T ]") : form_scope.
 End Exports.
 
 End Monoid.
