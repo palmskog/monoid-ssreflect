@@ -169,7 +169,6 @@ Export CommutativeMonoid.Exports.
 Section CommutativeMonoidIdentities.
 
 Variable T : commMonoidType.
-Implicit Types x y z : T.
 Local Notation mulmT := (@mulm T).
 
 Lemma mulmC : @commutative T _ mulmT.
